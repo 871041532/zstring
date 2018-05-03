@@ -1,6 +1,6 @@
 /*
  介绍：
-    综合gstring与CString两者特点，只有一个文件，性能与使用方便性高于两者。
+    C# 0GC字符串补充方案。结合gstring与CString两者特点，只有一个文件，性能与使用方便性高于两者。
  
  报告地址：
     https://coh5.cn/p/1ace6338.html
