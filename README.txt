@@ -14,7 +14,7 @@
             uiText1.text=(zstring)"hello world"+" you";
             uiText2.text=zstring.format("{0},{1}","hello","world");
         }
-        此方式设置的string值位于浅拷贝缓存中，一定时间可能会改变。
+        此方式设置的string值位于浅拷贝缓存中，一定时间可能会改变,出作用域后正确性不予保证。
 
      3.资源路径这种需要常驻的则需要intern一下在作用域外使用
 
@@ -26,7 +26,7 @@
 
             monster2.path=zstring.format("{0},{1}","hello","world");
         }
-        此方式设置的string值位于intern表中，游戏运行期间不会改变。
+        此方式设置的string值位于intern表中，游戏运行期间不会改变，可以在作用域外使用。
 
     4.不可使用zstring作为类的成员变量，不建议在using作用域中写for循环，而是在for循环内using。
 
