@@ -41,7 +41,7 @@ public class Test : MonoBehaviour
             zstring c = a + b;
             zstring d = c + b;
             Debug.Log(d);
-            Debug.Log(zstring.Format("aaa{0}{1}","我曹","喔"));
+            Debug.Log(zstring.Format("aaa{0}{1}", "我曹", "喔"));
             //testSizeof();       
             testSizeof02();
         }

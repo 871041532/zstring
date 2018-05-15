@@ -36,7 +36,7 @@
 
     7.追求极限性能的话，核心函数可以用C++Dll中的 memcpy内存拷贝函数，性能提升10%~20%，一般没这个必要。
 
-    8.测试打开zstringTest工程，分别在smallstringTest与bigStringTest下查看Profile性能。(同时对比了zstring，gstring，CString,还有王国纪元里的string)
+    8.测试打开zstringTest工程，在Test脚本上勾选与不勾选bigStringTest下查看Profile性能。(同时对比了zstring，gstring，CString,还有王国纪元里的string)
     
     9.有事请联系 871041532@outlook.com 或 QQ：871041532
  */

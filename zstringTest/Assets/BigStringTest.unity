@@ -208,7 +208,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   outsideString: 
   outsideString1: 
-  bigStringTest: 1
+  bigStringTest: 0
 --- !u!1 &2145803661
 GameObject:
   m_ObjectHideFlags: 0

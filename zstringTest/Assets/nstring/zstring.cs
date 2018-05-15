@@ -93,7 +93,7 @@ namespace GameFramework
 
         static Stack<zstring_block> g_blocks;//gstring_block缓存栈
         static Stack<zstring_block> g_open_blocks;//gstring已经打开的缓存栈      
-        static List<string> g_intern_table;//字符串intern表
+        static Dictionary<int,string> g_intern_table;//字符串intern表
         public static zstring_block g_current_block;//gstring所在的block块
         static List<int> g_finds;//字符串replace功能记录子串位置
         static zstring[] g_format_args;//存储格式化字符串值
@@ -206,17 +206,19 @@ namespace GameFramework
         //将string加入intern表中
         private static string __intern(string value)
         {
-            int idx = g_intern_table.IndexOf(value);
-            if (idx != -1)
-                return g_intern_table[idx];
-            string interned = new string(NEW_ALLOC_CHAR, value.Length);
-            memcpy(interned, value);
-            g_intern_table.Add(interned);
-#if DBG
-                        if (log != null)
-                            log("Interned: " + value);
-#endif
-            return interned;
+
+            int hash = value.GetHashCode();
+            if (g_intern_table.ContainsKey(hash))
+            {
+                return g_intern_table[hash];
+            }
+            else
+            {
+                string interned = new string(NEW_ALLOC_CHAR, value.Length);
+                memcpy(interned, value);
+                g_intern_table.Add(hash,interned);
+                return interned; 
+            }
         }
         //手动添加方法
         private static void getStackInCache(int index, out Stack<zstring> outStack)
@@ -908,7 +910,7 @@ namespace GameFramework
             g_cache = new Stack<zstring>[cache_capacity];
             g_secCache = new Dictionary<int, Stack<zstring>>(cache_capacity);
             g_blocks = new Stack<zstring_block>(block_capacity);
-            g_intern_table = new List<string>(intern_capacity);
+            g_intern_table = new Dictionary<int, string>(intern_capacity);
             g_open_blocks = new Stack<zstring_block>(open_capacity);
             g_shallowCache = new Stack<zstring>(shallowCache_capacity);
             for (int c = 0; c < cache_capacity; c++)
