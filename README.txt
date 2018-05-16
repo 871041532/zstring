@@ -22,11 +22,11 @@
         {
             zstring a="Assets/";
             zstring b=a+"prefabs/"+"/solider.prefab";
-            monster1.path=b.Intern();
+            prefabPath1=b.Intern();
 
-            monster2.path=zstring.format("{0},{1}","hello","world");
+            prefabPath2=zstring.format("{0},{1}","hello","world").Intern();
         }
-        此方式设置的string值位于intern表中，游戏运行期间不会改变，可以在作用域外使用。
+        此方式设置的string值位于深拷贝缓存中，游戏运行期间不会改变，可以在作用域外使用。
 
     4.不可使用zstring作为类的成员变量，不建议在using作用域中写for循环，而是在for循环内using。
 
