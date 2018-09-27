@@ -30,7 +30,7 @@
 
     4.不可使用zstring作为类的成员变量，不建议在using作用域中写for循环，而是在for循环内using。
 
-    5.首次调用时会初始化类，分配各种空间，建议游戏启动时调用一次using(zstring.block()){}
+    5.首次调用时会初始化类，分配各种空间，建议游戏启动时调用一次using(zstring.Block()){}
 
     6.0GC。时间消耗上，短字符串处理，zstring比gstring时间少20%~30%，比原生慢。大字符串处理，zstring比gstring时间少70%~80%，接近原生string速度。
 
