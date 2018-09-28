@@ -28,9 +28,9 @@ using System.Collections.Generic;
  */
 namespace GameFramework
 {
-        struct Byte8192
+    struct Byte8192
     {
-        Byte4096 a1; Byte4096 a2; 
+        Byte4096 a1; Byte4096 a2;
     }
     struct Byte4096
     {
@@ -38,7 +38,7 @@ namespace GameFramework
     }
     struct Byte2048
     {
-        Byte1024 a1; Byte1024 a2; 
+        Byte1024 a1; Byte1024 a2;
     }
     struct Byte1024
     {
@@ -46,19 +46,19 @@ namespace GameFramework
     }
     struct Byte512
     {
-        Byte256 a1; Byte256 a2; 
+        Byte256 a1; Byte256 a2;
     }
     struct Byte256
     {
-        Byte128 a1; Byte128 a2; 
+        Byte128 a1; Byte128 a2;
     }
     struct Byte128
     {
-        Byte64 a1; Byte64 a2; 
+        Byte64 a1; Byte64 a2;
     }
     struct Byte64
     {
-        Byte32 a1; Byte32 a2; 
+        Byte32 a1; Byte32 a2;
     }
     struct Byte32
     {
@@ -93,7 +93,7 @@ namespace GameFramework
 
         static Stack<zstring_block> g_blocks;//gstring_block缓存栈
         static Stack<zstring_block> g_open_blocks;//gstring已经打开的缓存栈      
-        static Dictionary<int,string> g_intern_table;//字符串intern表
+        static Dictionary<int, string> g_intern_table;//字符串intern表
         public static zstring_block g_current_block;//gstring所在的block块
         static List<int> g_finds;//字符串replace功能记录子串位置
         static zstring[] g_format_args;//存储格式化字符串值
@@ -106,8 +106,10 @@ namespace GameFramework
         const int INITIAL_SHALLOW_CAPACITY = 100;//默认50个浅拷贝用
         const char NEW_ALLOC_CHAR = 'X';//填充char
         private bool isShallow = false;//是否浅拷贝
-        [NonSerialized] string _value;//值
-        [NonSerialized] bool _disposed;//销毁标记
+        [NonSerialized]
+        string _value;//值
+        [NonSerialized]
+        bool _disposed;//销毁标记
 
         //不支持构造
         private zstring()
@@ -216,8 +218,8 @@ namespace GameFramework
             {
                 string interned = new string(NEW_ALLOC_CHAR, value.Length);
                 memcpy(interned, value);
-                g_intern_table.Add(hash,interned);
-                return interned; 
+                g_intern_table.Add(hash, interned);
+                return interned;
             }
         }
         //手动添加方法
@@ -298,6 +300,7 @@ namespace GameFramework
             zstring result = get(new_len);
             string res_value = result._value;
 
+            int next_idx = 0;
             int brace_idx = -3;
             for (int i = 0, j = 0, x = 0; x < num_args; x++)
             {
@@ -315,10 +318,14 @@ namespace GameFramework
                         for (int k = 0; i < new_len;)
                         {
                             if (j < brace_idx)
+                            {
                                 ptr_result[i++] = ptr_input[j++];
+                                ++next_idx;
+                            }                
                             else
                             {
                                 ptr_result[i++] = arg[k++];
+                                ++next_idx;
                                 if (k == arg.Length)
                                 {
                                     j += 3;
@@ -329,7 +336,17 @@ namespace GameFramework
                     }
                 }
             }
-
+            brace_idx += 3;
+            for (int i = next_idx, j =0; i < new_len; i++,j++)
+            {
+                fixed (char* ptr_input = input)
+                {
+                    fixed (char* ptr_result = res_value)
+                    {
+                        ptr_result[i] = ptr_input[brace_idx + j];
+                    }
+                }
+            }
             return result;
         }
 
@@ -697,98 +714,98 @@ namespace GameFramework
                 goto g1024;
             }
 
-             while (byteCount >= 8192)
+            while (byteCount >= 8192)
             {
                 ((Byte8192*)dest)[0] = ((Byte8192*)src)[0];
                 dest += 8192;
                 src += 8192;
                 byteCount -= 8192;
             }
-             if (byteCount >= 4096)
+            if (byteCount >= 4096)
             {
                 ((Byte4096*)dest)[0] = ((Byte4096*)src)[0];
                 dest += 4096;
                 src += 4096;
                 byteCount -= 4096;
             }
-             if (byteCount >= 2048)
+            if (byteCount >= 2048)
             {
                 ((Byte2048*)dest)[0] = ((Byte2048*)src)[0];
                 dest += 2048;
                 src += 2048;
                 byteCount -= 2048;
             }
-            g1024: if (byteCount >= 1024)
+        g1024: if (byteCount >= 1024)
             {
                 ((Byte1024*)dest)[0] = ((Byte1024*)src)[0];
                 dest += 1024;
                 src += 1024;
                 byteCount -= 1024;
             }
-            if(byteCount >= 512)
+            if (byteCount >= 512)
             {
                 ((Byte512*)dest)[0] = ((Byte512*)src)[0];
                 dest += 512;
                 src += 512;
                 byteCount -= 512;
             }
-             if (byteCount >= 256)
+            if (byteCount >= 256)
             {
                 ((Byte256*)dest)[0] = ((Byte256*)src)[0];
                 dest += 256;
                 src += 256;
                 byteCount -= 256;
             }
-             if (byteCount >= 128)
+            if (byteCount >= 128)
             {
                 ((Byte128*)dest)[0] = ((Byte128*)src)[0];
                 dest += 128;
                 src += 128;
                 byteCount -= 128;
             }
-            g64: if(byteCount >= 64)
+        g64: if (byteCount >= 64)
             {
                 ((Byte64*)dest)[0] = ((Byte64*)src)[0];
                 dest += 64;
                 src += 64;
                 byteCount -= 64;
             }
-             if (byteCount >= 32)
+            if (byteCount >= 32)
             {
                 ((Byte32*)dest)[0] = ((Byte32*)src)[0];
                 dest += 32;
                 src += 32;
                 byteCount -= 32;
             }
-             if (byteCount >= 16)
+            if (byteCount >= 16)
             {
                 ((Byte16*)dest)[0] = ((Byte16*)src)[0];
                 dest += 16;
                 src += 16;
                 byteCount -= 16;
             }
-             if (byteCount >= 8)
+            if (byteCount >= 8)
             {
                 ((Byte8*)dest)[0] = ((Byte8*)src)[0];
                 dest += 8;
                 src += 8;
                 byteCount -= 8;
             }
-             if (byteCount >= 4)
+            if (byteCount >= 4)
             {
                 ((Byte4*)dest)[0] = ((Byte4*)src)[0];
                 dest += 4;
                 src += 4;
                 byteCount -= 4;
             }
-             if (byteCount >= 2)
+            if (byteCount >= 2)
             {
                 ((Byte2*)dest)[0] = ((Byte2*)src)[0];
                 dest += 2;
                 src += 2;
                 byteCount -= 2;
             }
-             if (byteCount >= 1)
+            if (byteCount >= 1)
             {
                 ((Byte1*)dest)[0] = ((Byte1*)src)[0];
                 dest += 1;
@@ -949,7 +966,7 @@ namespace GameFramework
             //string interned = new string(NEW_ALLOC_CHAR, _value.Length);
             //memcpy(interned, _value);
             //return interned;
-           return __intern(_value);
+            return __intern(_value);
         }
         //将string放入gstring intern缓存表中以供外部使用
         public static string Intern(string value)

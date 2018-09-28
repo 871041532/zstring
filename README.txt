@@ -6,7 +6,7 @@
     https://coh5.cn/p/1ace6338.html
 
  使用方式：
-    1.将zstring.cs文件放于plugins目录下即可使用（不在plugins目录IOS打包FULLAOT编译不过）
+    1.Unity引擎将zstring.cs文件放于plugins目录下即可使用（不在plugins目录IOS打包FULLAOT编译不过）；其余C#程序将zstring.cs直接放入工程使用即可。
 
     2.（最佳性能）当update每帧刷新标签显示，或者大量UI飘字，或者该字符串是短时间使用的则使用如下方式：
         using (zstring.Block())
@@ -38,5 +38,5 @@
 
     8.测试打开zstringTest工程，在Test脚本上勾选与不勾选bigStringTest下查看Profile性能。(同时对比了zstring，gstring，CString,还有王国纪元里的string)
     
-    9.有事请联系 871041532@outlook.com 或 QQ：871041532
+    9.有事请联系 871041532@outlook.com 或 QQ(微信)：871041532
  */
