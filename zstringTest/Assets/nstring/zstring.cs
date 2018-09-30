@@ -288,28 +288,41 @@ namespace GameFramework
         {
             if (input == null)
                 throw new ArgumentNullException("value");
-            //新字符串长度
-            int new_len = input.Length - 3 * num_args;
 
-            for (int i = 0; i < num_args; i++)
+            //新字符串长度
+            int new_len = input.Length;
+            for (int i = -3;;)
             {
-                zstring arg = g_format_args[i];
+                i = internal_index_of(input, '{', i + 3);
+                if (i == -1)
+                {
+                    break;
+                }
+                new_len -= 3;
+                int arg_idx = input[i + 1] - '0';
+                zstring arg = g_format_args[arg_idx];
                 new_len += arg.Length;
             }
-
             zstring result = get(new_len);
             string res_value = result._value;
 
-            int next_idx = 0;
+            int next_output_idx = 0;
+            int next_input_idx = 0;
             int brace_idx = -3;
-            for (int i = 0, j = 0, x = 0; x < num_args; x++)
+            for (int i = 0, j = 0, x = 0; ; x++) // x < num_args
             {
-                string arg = g_format_args[x]._value;
                 brace_idx = internal_index_of(input, '{', brace_idx + 3);
+                if (brace_idx == -1)
+                {
+                    break;
+                }
+                next_input_idx = brace_idx;
+                int arg_idx = input[brace_idx + 1] - '0';
+                string arg = g_format_args[arg_idx]._value;
                 if (brace_idx == -1)
                     throw new InvalidOperationException("没有发现大括号{ for argument " + arg);
                 if (brace_idx + 2 >= input.Length || input[brace_idx + 2] != '}')
-                    throw new InvalidOperationException("没有发现大括号} for argument " + arg);
+                    throw new InvalidOperationException("没有发现大括号} for argument " + arg);              
 
                 fixed (char* ptr_input = input)
                 {
@@ -320,12 +333,12 @@ namespace GameFramework
                             if (j < brace_idx)
                             {
                                 ptr_result[i++] = ptr_input[j++];
-                                ++next_idx;
+                                ++next_output_idx;
                             }                
                             else
                             {
                                 ptr_result[i++] = arg[k++];
-                                ++next_idx;
+                                ++next_output_idx;
                                 if (k == arg.Length)
                                 {
                                     j += 3;
@@ -336,14 +349,14 @@ namespace GameFramework
                     }
                 }
             }
-            brace_idx += 3;
-            for (int i = next_idx, j =0; i < new_len; i++,j++)
+            next_input_idx += 3;
+            for (int i = next_output_idx, j =0; i < new_len; i++,j++)
             {
                 fixed (char* ptr_input = input)
                 {
                     fixed (char* ptr_result = res_value)
                     {
-                        ptr_result[i] = ptr_input[brace_idx + j];
+                        ptr_result[i] = ptr_input[next_input_idx + j];
                     }
                 }
             }
@@ -354,10 +367,12 @@ namespace GameFramework
         private unsafe static int internal_index_of(string input, char value, int start, int count)
         {
             if (start < 0 || start >= input.Length)
-                throw new ArgumentOutOfRangeException("start");
+                // throw new ArgumentOutOfRangeException("start");
+                return -1;
 
             if (start + count > input.Length)
-                throw new ArgumentOutOfRangeException("count=" + count + " start+count=" + start + count);
+                return -1;
+                // throw new ArgumentOutOfRangeException("count=" + count + " start+count=" + start + count);
 
             fixed (char* ptr_this = input)
             {
