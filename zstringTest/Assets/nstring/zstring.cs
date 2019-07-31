@@ -91,10 +91,10 @@ namespace GameFramework
         static Dictionary<int, Stack<zstring>> g_secCache;//key特定字符串长度value字符串栈，深拷贝次级缓存
         static Stack<zstring> g_shallowCache;//浅拷贝缓存
 
-        static Stack<zstring_block> g_blocks;//gstring_block缓存栈
-        static Stack<zstring_block> g_open_blocks;//gstring已经打开的缓存栈      
+        static Stack<zstring_block> g_blocks;//zstring_block缓存栈
+        static Stack<zstring_block> g_open_blocks;//zstring已经打开的缓存栈      
         static Dictionary<int, string> g_intern_table;//字符串intern表
-        public static zstring_block g_current_block;//gstring所在的block块
+        public static zstring_block g_current_block;//zstring所在的block块
         static List<int> g_finds;//字符串replace功能记录子串位置
         static zstring[] g_format_args;//存储格式化字符串值
 
@@ -171,7 +171,7 @@ namespace GameFramework
             _disposed = true;
         }
 
-        //由string获取相同内容gstring，深拷贝
+        //由string获取相同内容zstring，深拷贝
         private static zstring get(string value)
         {
             if (value == null)
@@ -184,7 +184,7 @@ namespace GameFramework
             memcpy(dst: result, src: value);//内存拷贝
             return result;
         }
-        //由string浅拷贝入gstring
+        //由string浅拷贝入zstring
         private static zstring getShallow(string value)
         {
             if (g_current_block == null)
@@ -202,7 +202,7 @@ namespace GameFramework
                 result._value = value;
             }
             result._disposed = false;
-            g_current_block.push(result);//gstring推入块所在栈
+            g_current_block.push(result);//zstring推入块所在栈
             return result;
         }
         //将string加入intern表中
@@ -239,7 +239,7 @@ namespace GameFramework
                 }
             }
         }
-        //获取特定长度gstring
+        //获取特定长度zstring
         private static zstring get(int length)
         {
             if (g_current_block == null || length <= 0)
@@ -258,9 +258,18 @@ namespace GameFramework
                 result = stack.Pop();
             }
             result._disposed = false;
-            g_current_block.push(result);//gstring推入块所在栈
+            g_current_block.push(result);//zstring推入块所在栈
             return result;
         }
+
+        //value是10的次方数
+        private static int get_digit_count(long value)
+        {
+            int cnt;
+            for (cnt = 1; (value /= 10) > 0; cnt++) ;
+            return cnt;
+        }
+
         //value是10的次方数
         private static int get_digit_count(int value)
         {
@@ -268,6 +277,7 @@ namespace GameFramework
             for (cnt = 1; (value /= 10) > 0; cnt++) ;
             return cnt;
         }
+
         //获取char在input中start起往后的下标
         private static int internal_index_of(string input, char value, int start)
         {
@@ -291,7 +301,7 @@ namespace GameFramework
 
             //新字符串长度
             int new_len = input.Length;
-            for (int i = -3;;)
+            for (int i = -3; ;)
             {
                 i = internal_index_of(input, '{', i + 3);
                 if (i == -1)
@@ -322,7 +332,7 @@ namespace GameFramework
                 if (brace_idx == -1)
                     throw new InvalidOperationException("没有发现大括号{ for argument " + arg);
                 if (brace_idx + 2 >= input.Length || input[brace_idx + 2] != '}')
-                    throw new InvalidOperationException("没有发现大括号} for argument " + arg);              
+                    throw new InvalidOperationException("没有发现大括号} for argument " + arg);
 
                 fixed (char* ptr_input = input)
                 {
@@ -334,7 +344,7 @@ namespace GameFramework
                             {
                                 ptr_result[i++] = ptr_input[j++];
                                 ++next_output_idx;
-                            }                
+                            }
                             else
                             {
                                 ptr_result[i++] = arg[k++];
@@ -350,7 +360,7 @@ namespace GameFramework
                 }
             }
             next_input_idx += 3;
-            for (int i = next_output_idx, j =0; i < new_len; i++,j++)
+            for (int i = next_output_idx, j = 0; i < new_len; i++, j++)
             {
                 fixed (char* ptr_input = input)
                 {
@@ -372,7 +382,7 @@ namespace GameFramework
 
             if (start + count > input.Length)
                 return -1;
-                // throw new ArgumentOutOfRangeException("count=" + count + " start+count=" + start + count);
+            // throw new ArgumentOutOfRangeException("count=" + count + " start+count=" + start + count);
 
             fixed (char* ptr_this = input)
             {
@@ -615,6 +625,15 @@ namespace GameFramework
                 }
             }
         }
+
+        //将长度为count的数字插入dst中，起始位置为start，dst的长度需大于start+count
+        private unsafe static void longcpy(char* dst, long value, int start, int count)
+        {
+            int end = start + count;
+            for (int i = end - 1; i >= start; i--, value /= 10)
+                *(dst + i) = (char)(value % 10 + 48);
+        }
+
         //将长度为count的数字插入dst中，起始位置为start，dst的长度需大于start+count
         private unsafe static void intcpy(char* dst, int value, int start, int count)
         {
@@ -622,6 +641,7 @@ namespace GameFramework
             for (int i = end - 1; i >= start; i--, value /= 10)
                 *(dst + i) = (char)(value % 10 + 48);
         }
+
         private static unsafe void _memcpy4(byte* dest, byte* src, int size)
         {
             /*while (size >= 32) {
@@ -908,7 +928,7 @@ namespace GameFramework
                 while (stack.Count > 0)
                 {
                     var str = stack.Pop();
-                    str.dispose();//循环调用栈中gstring的Dispose方法
+                    str.dispose();//循环调用栈中zstring的Dispose方法
                 }
                 zstring.g_blocks.Push(this);//将自身push入缓存栈
 
@@ -964,7 +984,7 @@ namespace GameFramework
             }
         }
 
-        //using语法所用。从gstring_block栈中取出一个block并将其置为当前g_current_block，在代码块{}中新生成的gstring都将push入块内部stack中。当离开块作用域时，调用块的Dispose函数，将内栈中所有gstring填充初始值并放入gstring缓存栈。同时将自身放入block缓存栈中。（此处有个问题：使用Stack缓存block，当block被dispose放入Stack后g_current_block仍然指向此block，无法记录此block之前的block，这样导致gstring.Block()无法嵌套使用）
+        //using语法所用。从zstring_block栈中取出一个block并将其置为当前g_current_block，在代码块{}中新生成的zstring都将push入块内部stack中。当离开块作用域时，调用块的Dispose函数，将内栈中所有zstring填充初始值并放入zstring缓存栈。同时将自身放入block缓存栈中。（此处有个问题：使用Stack缓存block，当block被dispose放入Stack后g_current_block仍然指向此block，无法记录此block之前的block，这样导致zstring.Block()无法嵌套使用）
         public static IDisposable Block()
         {
             if (g_blocks.Count == 0)
@@ -975,7 +995,7 @@ namespace GameFramework
             g_open_blocks.Push(g_current_block);//新加代码，将此玩意压入open栈
             return g_current_block.begin();
         }
-        //将gstring value放入intern缓存表中以供外部使用
+        //将zstring value放入intern缓存表中以供外部使用
         public string Intern()
         {
             //string interned = new string(NEW_ALLOC_CHAR, _value.Length);
@@ -983,7 +1003,7 @@ namespace GameFramework
             //return interned;
             return __intern(_value);
         }
-        //将string放入gstring intern缓存表中以供外部使用
+        //将string放入zstring intern缓存表中以供外部使用
         public static string Intern(string value)
         {
             return __intern(value);
@@ -1026,17 +1046,47 @@ namespace GameFramework
         {
             return _value;
         }
-        //bool->gstring转换
+        //bool->zstring转换
         public static implicit operator zstring(bool value)
         {
             return get(value ? "True" : "False");
         }
-        //int->gstring转换
+
+        // long - >zstring转换
+        public unsafe static implicit operator zstring(long value)
+        {
+            // e.g. 125
+            // first pass: count the number of digits
+            // then: get a zstring with length = num digits
+            // finally: iterate again, get the char of each digit, memcpy char to result
+            bool negative = value < 0;
+            value = Math.Abs(value);
+            int num_digits = get_digit_count(value);
+            zstring result;
+            if (negative)
+            {
+                result = get(num_digits + 1);
+                fixed (char* ptr = result._value)
+                {
+                    *ptr = '-';
+                    longcpy(ptr, value, 1, num_digits);
+                }
+            }
+            else
+            {
+                result = get(num_digits);
+                fixed (char* ptr = result._value)
+                    longcpy(ptr, value, 0, num_digits);
+            }
+            return result;
+        }
+
+        //int->zstring转换
         public unsafe static implicit operator zstring(int value)
         {
             // e.g. 125
             // first pass: count the number of digits
-            // then: get a gstring with length = num digits
+            // then: get a zstring with length = num digits
             // finally: iterate again, get the char of each digit, memcpy char to result
             bool negative = value < 0;
             value = Math.Abs(value);
@@ -1059,6 +1109,7 @@ namespace GameFramework
             }
             return result;
         }
+
         //float->zstring转换
         public unsafe static implicit operator zstring(float value)
         {
@@ -1108,7 +1159,7 @@ namespace GameFramework
         {
             return getShallow(value);
         }
-        //gstring->string转换
+        //zstring->string转换
         public static implicit operator string(zstring value)
         {
             return value._value;
