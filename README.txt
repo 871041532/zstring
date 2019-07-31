@@ -38,5 +38,8 @@
 
     8.测试打开zstringTest工程，在Test脚本上勾选与不勾选bigStringTest下查看Profile性能。(同时对比了zstring，gstring，CString,还有王国纪元里的string)
     
-    9.有事请联系 871041532@outlook.com 或 QQ(微信)：871041532
+    9.据热心用户反应，IL2CPP 2017.4 在 Android上有字节对齐问题，换成2018就木有了。所以此时解决办法有三个：1.IL2CPP换成2018以上版本。 2.719行左右的memcpy函数换成循环一次拷贝一个字节。 3.不怕麻烦的话此处调用C语言的内存拷贝函数dll，即C语言<string.h>中的memcpy。
+
+    
+    10.有事请联系 871041532@outlook.com 或 QQ(微信)：871041532
  */
