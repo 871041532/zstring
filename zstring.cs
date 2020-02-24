@@ -44,7 +44,6 @@ using System.Collections.Generic;
 
     10.有事请联系 871041532@outlook.com 或 QQ(微信)：871041532
  */
-
 namespace GameFramework
 {
     struct Byte8192
@@ -285,6 +284,14 @@ namespace GameFramework
         private static int get_digit_count(long value)
         {
             int cnt;
+            for (cnt = 1; (value /= 10) > 0; cnt++) ;
+            return cnt;
+        }
+
+        //value是10的次方数
+        private static uint get_digit_count(uint value)
+        {
+            uint cnt;
             for (cnt = 1; (value /= 10) > 0; cnt++) ;
             return cnt;
         }
@@ -969,7 +976,7 @@ namespace GameFramework
 
         public static Action<string> Log = null;
 
-        public static int DecimalAccuracy = 3; // 小数点后精度位数
+        public static uint DecimalAccuracy = 3; // 小数点后精度位数
         //获取字符串长度
         public int Length
         {
@@ -1135,13 +1142,14 @@ namespace GameFramework
             // e.g. 3.148
             bool negative = value < 0;
             if (negative) value = -value;
-            int mul = (int)Math.Pow(10, DecimalAccuracy);
-            int number = (int)(value * mul); // gets the number as a whole, e.g. 3148
-            int left_num = number / mul; // left part of the decimal point, e.g. 3
-            int right_num = number % mul; // right part of the decimal pnt, e.g. 148
+            long mul = (long)Math.Pow(10, DecimalAccuracy);
+            long number = (long)(value * mul); // gets the number as a whole, e.g. 3148
+            int left_num = (int)(number / mul); // left part of the decimal point, e.g. 3
+            int right_num = (int)(number % mul); // right part of the decimal pnt, e.g. 148
             int left_digit_count = get_digit_count(left_num); // e.g. 1
             int right_digit_count = get_digit_count(right_num); // e.g. 3
-            int total = left_digit_count + right_digit_count + 1; // +1 for '.'
+            //int total = left_digit_count + right_digit_count + 1; // +1 for '.'
+            int total = left_digit_count + (int)DecimalAccuracy + 1; // +1 for '.'
 
             zstring result;
             if (negative)
@@ -1152,7 +1160,10 @@ namespace GameFramework
                     *ptr = '-';
                     intcpy(ptr, left_num, 1, left_digit_count);
                     *(ptr + left_digit_count + 1) = '.';
-                    intcpy(ptr, right_num, left_digit_count + 2, right_digit_count);
+                    int offest = (int)DecimalAccuracy - right_digit_count;
+                    for (int i = 0; i < offest; i++)
+                        *(ptr + left_digit_count + i + 1) = '0';
+                    intcpy(ptr, right_num, left_digit_count + 2 + offest, right_digit_count);
                 }
             }
             else
@@ -1162,7 +1173,10 @@ namespace GameFramework
                 {
                     intcpy(ptr, left_num, 0, left_digit_count);
                     *(ptr + left_digit_count) = '.';
-                    intcpy(ptr, right_num, left_digit_count + 1, right_digit_count);
+                    int offest = (int)DecimalAccuracy - right_digit_count;
+                    for (int i = 0; i < offest; i++)
+                        *(ptr + left_digit_count + i + 1) = '0';
+                    intcpy(ptr, right_num, left_digit_count + 1 + offest, right_digit_count);
                 }
             }
             return result;
@@ -1613,6 +1627,18 @@ namespace GameFramework
 
             g_format_args[0] = arg0;
             return internal_format(input, 1);
+        }
+
+        // 普通的float->string是隐式转换，小数点后只保留三位有效数字
+        // 对于更高精确度需求，隐式转换，可以修改静态变量DecimalAccuracy
+        // 显式转换使用此方法即可，函数结束DecimalAccuracy值和之前的一样
+        public static zstring FloatToZstring(float value, uint DecimalAccuracy)
+        {
+            uint oldValue = zstring.DecimalAccuracy;
+            zstring.DecimalAccuracy = DecimalAccuracy;
+            zstring target = (zstring)value;
+            zstring.DecimalAccuracy = oldValue;
+            return target;
         }
 
         //判空或长度
