@@ -105,8 +105,8 @@ namespace GameFramework
     }
     public class zstring
     {
-        static Stack<zstring>[] g_cache;//idx特定字符串长度,深拷贝核心缓存
-        static Dictionary<int, Stack<zstring>> g_secCache;//key特定字符串长度value字符串栈，深拷贝次级缓存
+        static Queue<zstring>[] g_cache;//idx特定字符串长度,深拷贝核心缓存
+        static Dictionary<int, Queue<zstring>> g_secCache;//key特定字符串长度value字符串栈，深拷贝次级缓存
         static Stack<zstring> g_shallowCache;//浅拷贝缓存
 
         static Stack<zstring_block> g_blocks;//zstring_block缓存栈
@@ -174,7 +174,7 @@ namespace GameFramework
             }
             else
             {
-                Stack<zstring> stack;
+                Queue<zstring> stack;
                 if (g_cache.Length > Length)
                 {
                     stack = g_cache[Length];//取出valuelength长度的栈，将自身push进去
@@ -183,7 +183,7 @@ namespace GameFramework
                 {
                     stack = g_secCache[Length];
                 }
-                stack.Push(this);
+                stack.Enqueue(this);
             }
             //memcpy(_value, NEW_ALLOC_CHAR);//内存拷贝至value
             _disposed = true;
@@ -241,7 +241,7 @@ namespace GameFramework
             }
         }
         //手动添加方法
-        private static void getStackInCache(int index, out Stack<zstring> outStack)
+        private static void getStackInCache(int index, out Queue<zstring> outStack)
         {
             int length = g_cache.Length;
             if (length > index)//从核心缓存中取
@@ -252,7 +252,7 @@ namespace GameFramework
             {
                 if (!g_secCache.TryGetValue(index, out outStack))
                 {
-                    outStack = new Stack<zstring>(INITIAL_STACK_CAPACITY);
+                    outStack = new Queue<zstring>(INITIAL_STACK_CAPACITY);
                     g_secCache[index] = outStack;
                 }
             }
@@ -264,7 +264,7 @@ namespace GameFramework
                 throw new InvalidOperationException("zstring 操作必须在一个zstring_block块中。");
 
             zstring result;
-            Stack<zstring> stack;
+            Queue<zstring> stack;
             getStackInCache(length, out stack);
             //从缓存中取Stack
             if (stack.Count == 0)
@@ -273,7 +273,7 @@ namespace GameFramework
             }
             else
             {
-                result = stack.Pop();
+                result = stack.Dequeue();
             }
             result._disposed = false;
             g_current_block.push(result);//zstring推入块所在栈
@@ -985,17 +985,17 @@ namespace GameFramework
         //类构造：cache_capacity缓存栈字典容量，stack_capacity缓存字符串栈容量，block_capacity缓存栈容量，intern_capacity缓存,open_capacity默认打开层数
         public static void Initialize(int cache_capacity, int stack_capacity, int block_capacity, int intern_capacity, int open_capacity, int shallowCache_capacity)
         {
-            g_cache = new Stack<zstring>[cache_capacity];
-            g_secCache = new Dictionary<int, Stack<zstring>>(cache_capacity);
+            g_cache = new Queue<zstring>[cache_capacity];
+            g_secCache = new Dictionary<int, Queue<zstring>>(cache_capacity);
             g_blocks = new Stack<zstring_block>(block_capacity);
             g_intern_table = new Dictionary<int, string>(intern_capacity);
             g_open_blocks = new Stack<zstring_block>(open_capacity);
             g_shallowCache = new Stack<zstring>(shallowCache_capacity);
             for (int c = 0; c < cache_capacity; c++)
             {
-                var stack = new Stack<zstring>(stack_capacity);
+                var stack = new Queue<zstring>(stack_capacity);
                 for (int j = 0; j < stack_capacity; j++)
-                    stack.Push(new zstring(c));
+                    stack.Enqueue(new zstring(c));
                 g_cache[c] = stack;
             }
 
@@ -1431,7 +1431,7 @@ namespace GameFramework
         //获取某长度字符串缓存数量
         public static int GetCacheCount(int length)
         {
-            Stack<zstring> stack;
+            Queue<zstring> stack;
             getStackInCache(length, out stack);
             return stack.Count;
         }
