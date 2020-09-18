@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 //#define DBG
@@ -26,8 +27,8 @@ namespace System
 {
     public class nstring
     {
-        static Stack<nstring>[] g_cache;//idx特定字符串长度,深拷贝核心缓存
-        static Dictionary<int, Stack<nstring>> g_secCache;//key特定字符串长度value字符串栈，深拷贝次级缓存
+        static Queue<nstring>[] g_cache;//idx特定字符串长度,深拷贝核心缓存
+        static Dictionary<int, Queue<nstring>> g_secCache;//key特定字符串长度value字符串栈，深拷贝次级缓存
         static Stack<nstring> g_shallowCache;//浅拷贝缓存
 
         static Stack<nstring_block> g_blocks;//gstring_block缓存栈
@@ -93,7 +94,7 @@ namespace System
             }
             else
             {
-                Stack<nstring> stack;
+                Queue<nstring> stack;
                 if (g_cache.Length>Length)
                 {
                     stack = g_cache[Length];//取出valuelength长度的栈，将自身push进去
@@ -102,7 +103,7 @@ namespace System
                 {
                     stack = g_secCache[Length];
                 }
-                stack.Push(this);
+                stack.Enqueue(this);
             }
             //memcpy(_value, NEW_ALLOC_CHAR);//内存拷贝至value
             _disposed = true;
@@ -158,7 +159,7 @@ namespace System
             return interned;
         }
         //手动添加方法
-        private static void getStackInCache(int index, out Stack<nstring> outStack)
+        private static void getStackInCache(int index, out Queue<nstring> outStack)
         {
             int length = g_cache.Length;
             if (length > index)//从核心缓存中取
@@ -169,7 +170,7 @@ namespace System
             {
                 if (!g_secCache.TryGetValue(index, out outStack))
                 {
-                    outStack = new Stack<nstring>(INITIAL_STACK_CAPACITY);
+                    outStack = new Queue<nstring>(INITIAL_STACK_CAPACITY);
                     g_secCache[index] = outStack;
                 }
             }
@@ -181,7 +182,7 @@ namespace System
                 throw new InvalidOperationException("nstring 操作必须在一个nstring_block块中。");
 
             nstring result;
-            Stack<nstring> stack;
+            Queue<nstring> stack;
             getStackInCache(length, out stack);
             //从缓存中取Stack
             if (stack.Count == 0)
@@ -190,7 +191,7 @@ namespace System
             }
             else
             {
-                result = stack.Pop();
+                result = stack.Dequeue();
             }
             result._disposed = false;
             g_current_block.push(result);//gstring推入块所在栈
@@ -652,17 +653,17 @@ namespace System
         //类构造：cache_capacity缓存栈字典容量，stack_capacity缓存字符串栈容量，block_capacity缓存栈容量，intern_capacity缓存,open_capacity默认打开层数
         public static void Initialize(int cache_capacity, int stack_capacity, int block_capacity, int intern_capacity, int open_capacity, int shallowCache_capacity)
         {
-            g_cache = new Stack<nstring>[cache_capacity];
-            g_secCache = new Dictionary<int, Stack<nstring>>(cache_capacity);
+            g_cache = new Queue<nstring>[cache_capacity];
+            g_secCache = new Dictionary<int, Queue<nstring>>(cache_capacity);
             g_blocks = new Stack<nstring_block>(block_capacity);
             g_intern_table = new List<string>(intern_capacity);
             g_open_blocks = new Stack<nstring_block>(open_capacity);
             g_shallowCache = new Stack<nstring>(shallowCache_capacity);
             for (int c = 0; c < cache_capacity; c++)
             {
-                var stack = new Stack<nstring>(stack_capacity);
+                var stack = new Queue<nstring>(stack_capacity);
                 for (int j = 0; j < stack_capacity; j++)
-                    stack.Push(new nstring(c));
+                    stack.Enqueue(new nstring(c));
                 g_cache[c] = stack;
             }
 
@@ -1056,7 +1057,7 @@ namespace System
         //获取某长度字符串缓存数量
         public static int GetCacheCount(int length)
         {
-            Stack<nstring> stack;
+            Queue<nstring> stack;
             getStackInCache(length, out stack);
             return stack.Count;
         }
