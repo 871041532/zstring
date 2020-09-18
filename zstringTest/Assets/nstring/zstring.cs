@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Unity.Collections.LowLevel.Unsafe;
+
 /*
  介绍：
     C# 0GC字符串补充方案。结合gstring与CString两者特点（向这两个方案的作者致敬），只有一个文件，性能与使用方便性高于两者。
@@ -733,37 +735,16 @@ namespace GameFramework
                 ((byte*)dest)[0] = ((byte*)src)[0];
             }
         }
-        //从src，0位置起始拷贝count长度字符串src到dst中
-        //private unsafe static void memcpy(char* dest, char* src, int count)
-        //{
-        //    // Same rules as for memcpy, but with the premise that 
-        //    // chars can only be aligned to even addresses if their
-        //    // enclosing types are correctly aligned
-
-        //    superMemcpy(dest, src, count);
-        //    //if ((((int)(byte*)dest | (int)(byte*)src) & 3) != 0)//转换为byte指针
-        //    //{
-        //    //    if (((int)(byte*)dest & 2) != 0 && ((int)(byte*)src & 2) != 0 && count > 0)
-        //    //    {
-        //    //        ((short*)dest)[0] = ((short*)src)[0];
-        //    //        dest++;
-        //    //        src++;
-        //    //        count--;
-        //    //    }
-        //    //    if ((((int)(byte*)dest | (int)(byte*)src) & 2) != 0)
-        //    //    {
-        //    //        _memcpy2((byte*)dest, (byte*)src, count * 2);//转换为short*指针一次两个字节拷贝
-        //    //        return;
-        //    //    }
-        //    //}
-        //    //_memcpy4((byte*)dest, (byte*)src, count * 2);//转换为int*指针一次四个字节拷贝
-        //}
+        
         //--------------------------------------手敲memcpy-------------------------------------//
         private static int m_charLen = sizeof(char);
         private unsafe static void memcpy(char* dest, char* src, int count)
         {
-            byteCopy((byte*)dest, (byte*)src, count * m_charLen);
+            // 此处换成Unity的内存拷贝函数，性能高3%，坏处是非Unity项目用不了
+            UnsafeUtility.MemCpy(dest, src, count * m_charLen);
+            // byteCopy((byte*)dest, (byte*)src, count * m_charLen);
         }
+        
         private unsafe static void byteCopy(byte* dest, byte* src, int byteCount)
         {
             if (byteCount < 128)
