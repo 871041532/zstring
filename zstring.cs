@@ -766,6 +766,8 @@ namespace GameFramework
         }
         private unsafe static void byteCopy(byte* dest, byte* src, int byteCount)
         {
+            Buffer.MemoryCopy(src, dest, byteCount, byteCount);
+            return;
             if (byteCount < 128)
             {
                 goto g64;
